@@ -78,8 +78,8 @@ public:
     ~HBVector(){
         delete [] data;
     }
-
-    // Add an item to the end of the vector
+    
+    // print vector items
     friend ostream &operator << (ostream out ,HBVector<T>);
 };
 
