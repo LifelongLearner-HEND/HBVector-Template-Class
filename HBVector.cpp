@@ -1,223 +1,337 @@
-#include "HBVector.h"
 
-#define TMP template <class T>
+#include "Header.h"
 
 TMP
+/**
+* @brief Constructor
+* @param capacity The capacity of the vector
+*/
+
 HBVector<T>::HBVector(int cap)
 {
-    if (cap <= 0)
-    {
-        cout << "For the Capacity, Please Enter a Number greater than Zero." << endl;
-        exit(1);
-    }
-
-    Capacity = cap;
-    data = new T[Capacity];
-    Size = 0;
+	if (cap <= 0)
+	{
+		cout << "For the Capacity, Please Enter a Number greater than Zero." << endl;
+		exit(1);
+	}
+	data = new T[10];
+	Size = 0;
+	Capacity = cap;
 }
 
+/**
+* @brief Constructor
+* @param arr The array to copy from
+* @param n The number of items to copy
+*/
 TMP
 HBVector<T>::HBVector(T* arr, int n)
-{
-    Size = n;
-    data = new T[Size];
-    for (int i = 0; i < Size; i++)
-        data[i] = arr[i];
+{ //!< 
+	data = new T[n];
+	for (int i = 0; i < n; i++)
+	{
+		data[i] = arr[i];
+	}
+	Size = n;
+	Capacity = n;
 }
 
-
+/**
+* @brief Copy Constructor
+* @param other The vector to copy from
+*/
 TMP
 HBVector<T>::HBVector(const HBVector& other)
 {
-    // new vector size should equal to the passed vector size
-    Size = other.size();
-    data = new T[Size];
-    for (int i = 0; i < Size; i++) {
-        data[i] = other.data[i];
-    }
+	data = new T[other.Size];
+	for (int i = 0; i < other.Size; i++)
+	{
+		data[i] = other.data[i];
+	}
+	Size = other.Size;
+	Capacity = other.Capacity;
 }
 
+/**
+* @brief Destructor
+*/
 TMP
 HBVector<T>::~HBVector()
 {
-    delete[] data;
+	delete[] data;
 }
 
-TMP
-HBVector<T>& HBVector<T>::operator= (const HBVector& another)
-{
-    if (this != &another) {
-        delete[] data;
-        Size = another.size();
-        data = new T[Size];
-        for (int i = 0; i < Size; i++) {
-            data[i] = another.data[i];
-        }
-    }
-    return *this;
-}
-
-/*TMP
-HBVector<T>& HBVector<T>::operator= (const HBVector&& another)
-{
-    if (this != &another){
-        delete [] data;
-        Size = another.size();
-        data = another.getData();
-        another.data = nullptr;
-    }
-    return *this;
-}
+/**
+* @brief Copy Assignment
+* @param other The vector to copy from
+* @return A reference to this vector
 */
-
 TMP
-T& HBVector<T>::operator[] (int index)
+HBVector<T>& HBVector<T>::operator=(const HBVector& other)
 {
-    if (index > Size - 1 || index < 0) {
-        cout << "Out of Range Error.\n";
-        exit(-1);
-    }
-    else {
-        return data[index];
-    }
+	if (this != &other)
+	{
+		delete[] data;
+		data = new T[other.Size];
+		for (int i = 0; i < other.Size; i++)
+		{
+			data[i] = other.data[i];
+		}
+		Size = other.Size;
+		Capacity = other.Capacity;
+	}
+	return *this;
 }
 
-///////////////////////////////////////////////////////////////////////
-
+/**
+* @brief Move Assignment
+* @param other The vector to move from
+* @return A reference to this vector
+*/
 TMP
-void HBVector<T>::push_back(T element)
+HBVector<T>& HBVector<T>::operator=(const HBVector&& other)
 {
-    Size++;
-    if (Size > Capacity)
-        resize(Capacity + (Capacity / 2));
-    *(data + Size - 1) = element;
+	if (this != &other)
+	{
+		delete[] data;
+		data = new T[other.Size];
+		for (int i = 0; i < other.Size; i++)
+		{
+			data[i] = other.data[i];
+		}
+		Size = other.Size;
+		Capacity = other.Capacity;
+	}
+	return *this;
 }
 
+/**
+* @brief [] operator overloading
+* @param index The index of the element to return
+* @return the element at the given index
+*/
+TMP
+T& HBVector<T>::operator[](int index)
+{
+	if (index < 0 || index >= Size)
+	{
+		throw "Index out of range";
+	}
+	return data[index];
+}
+
+/**
+* @brief adding an element to the end of the vector
+* @param item The item to add
+*/
+TMP
+int HBVector<T>::push_back(T element)
+{
+	if (Size == Capacity)
+	{
+		T* temp = new T[Capacity * 2];
+		for (int i = 0; i < Size; i++)
+		{
+			temp[i] = data[i];
+		}
+		delete[] data;
+		data = temp;
+		Capacity *= 2;
+	}
+	data[Size] = element;
+	Size++;
+	return Size;
+}
+
+/**
+* @brief removing the last element from the vector
+* @return the last element
+*/
 TMP
 T HBVector<T>::pop_back()
 {
-    Size--;
-
-    if (Size <= 0)
-    {
-        cout << "The Vector is already Empty!" << endl;
-        exit(1);
-    }
-
-    return *(data + Size);
+	if (Size == 0)
+	{
+		throw "Vector is empty";
+	}
+	Size--;
+	return data[Size];
 }
 
-/*TMP
-void HBVector<T>::erase(iterator iter)
-{
 
-}
+/**
+* @brief inserting an element where the iterator is pointing
+* @param itr The iterator to insert at
+* @param item The item to insert
 */
-
-/*
 TMP
-void HBVector<T>::erase(iterator iter1, iterator iter2)
+void HBVector<T>::insert(Iterator<T> itr, T element)
 {
-
+	if (itr < data || itr > data + Size)
+	{
+		throw "Iterator out of range";
+	}
+	
+	if (Size == Capacity)
+	{
+		resize(Capacity * 2);
+	}
+	
+	for (Iterator<T> i = data + Size; i > itr; i--)
+	{
+		*i = *(i - 1);
+	}
+	
+	*itr = element;
+	Size++;
 }
-*/
 
+/**
+* @brief erasing an element where the iterator is pointing
+* @param itr The iterator to erase at
+*/
 TMP
-void HBVector<T>::clear()
+void HBVector<T>::erase(Iterator<T> itr)
 {
-    data = nullptr;
-    Size = 0;
+	if (itr < data || itr >= data + Size)
+	{
+		throw "Invalid iterator";
+	}
+	for (iterator i = itr; i < data + Size - 1; i++)
+	{
+		*i = *(i + 1);
+	}
+	Size--;
 }
 
-/*TMP
-void HBVector<T>::insert(iterator iter, T element)
-{
-
-}
+/**
+* @brief erase a range of elements
+* @param start The iterator to start erasing at
+* @param end The iterator to stop erasing at
 */
-
-/*TMP
-iterator HBVector<T>::begin()
-{
-
-}
-*/
-
-/*TMP
-iterator HBVector<T>::end()
-{
-
-}
-*/
-
-///////////////////////////////////////////////////////////////////////
-
 TMP
-bool HBVector<T>::operator== (const HBVector& other)
+void HBVector<T>::erase(Iterator<T> start, Iterator<T> end)
 {
-    if (Size != other.size())
-        return false;
-
-    for (int i = 0; i < Size; i++)
-    {
-        if (*(data + i) != *((other.getData()) + i))
-            return false;
-    }
-
-    return true;
+	if (start < data || start >= data + Size || end < data || end >= data + Size)
+	{
+		throw "Invalid iterator";
+	}
+	
+	for (iterator i = start; i < end; i++)
+	{
+		erase(i);
+	}
+	
 }
 
+/**
+* @brief pointing to the first element
+* @return pointer to the first element
+*/
 TMP
-bool HBVector<T>::operator< (const HBVector& other)
+Iterator<T> HBVector<T>::begin()
 {
-    if (Size < other.size())
-        return true;
-
-    if (Size > other.size())
-        return false;
-
-    for (int i = 0; i < Size; i++)
-        if (data[i] > other.data[i])
-            return false;
-
-    return true;
+	Iterator<T> i(data);
+	return i;
 }
 
+/**
+* @brief pointing to the last element
+* @return pointer to the last element
+*/
+TMP
+Iterator<T> HBVector<T>::end()
+{
+	Iterator<T> end(data + Size);
+	return end;
+}
 
+/**
+* @brief the size of the vector
+* @return the size of the vector
+*/
 TMP
 int HBVector<T>::size() const
 {
-    return Size;
+	return Size;
 }
 
-
+/**
+* @brief the capacity of the vector
+* @return the capacity of the vector
+*/
 TMP
 int HBVector<T>::capacity() const
 {
-    return Capacity;
+	return Capacity;
 }
 
+/**
+* @brief clearing the vector
+*/
+TMP
+void HBVector<T>::clear()
+{
+	Size = 0;
+}
+
+/**
+* @brief resizing the vector
+* @param n The new size of the vector
+*/
 TMP
 void HBVector<T>::resize(int newCap)
 {
-    Capacity = newCap;
-    T* newData = new T[Capacity];
-    for (int i = 0; i < Size; i++)
-        newData[i] = data[i];
-    delete[] data;
-    data = newData;
+	if (newCap < Size)
+	{
+		throw "New capacity is too small";
+	}
+	T* temp = new T[newCap];
+	for (int i = 0; i < Size; i++)
+	{
+		temp[i] = data[i];
+	}
+	delete[] data;
+	data = temp;
+	Capacity = newCap;
 }
 
+/**
+* @brief checking if the vector is empty
+* @return true if the vector is empty, false otherwise
+*/
 TMP
 bool HBVector<T>::empty()
 {
-    return (Size == 0);
+	return Size == 0;
 }
 
+/**
+* @brief printing the vector
+*/
 TMP
-ostream& operator << (ostream out, HBVector<T> vec) {
-    for (int i = 0; i < vec.size; i++) {
-        out << vec.data[i] << " ";
-    }
-    return out;
+void printVec(HBVector<T> vec)
+{
+	Iterator<T> i(vec.begin());
+	Iterator<T> end(vec.end());
+	while (i != end)
+	{
+		cout << *i << " ";
+		i++;
+	}
+}
+
+/**
+* @brief printing the vector
+*/
+TMP
+ostream &operator<< (ostream& out,HBVector<T> vec)
+{
+	Iterator<T> i(vec.begin());
+	Iterator<T> end(vec.end());
+	while (i != end)
+	{
+		out << *i << " ";
+		i++;
+	}
 }
